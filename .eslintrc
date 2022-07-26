@@ -1,0 +1,25 @@
+{
+  "extends": 
+  [ 
+    "@unologin/eslint-config"
+  ],
+  "plugins":
+  [
+    "react",
+    "jest"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "env": 
+  {
+    "browser": true,
+    "jest": true
+  },
+  "globals":
+  {
+    "global": "readonly",
+    "fetch": true,
+    "process": "readonly",
+    "JSX": "readonly",
+    "__dirname": "readonly"
+  }
+}
