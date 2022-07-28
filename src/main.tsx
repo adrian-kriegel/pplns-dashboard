@@ -1,5 +1,5 @@
 
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 
 import {
   BrowserRouter,
@@ -7,25 +7,42 @@ import {
   Route,
 } from 'react-router-dom';
 
+import PageContent from '@unologin/react-ui/layout/page-content';
+
+
 import '@unologin/react-ui/style.scss';
 import '@unologin/react-ui/font.scss';
-
 import '@fontsource/nunito';
 
-import Tasks from './tasks';
+import Tasks from './components/tasks/tasks';
+import Flow from './components/flow/flow';
+import Workers from './components/workers/workers';
+
 
 const App = () => 
-  <Routes>
-    <Route path='/tasks'>
-      <Route index element={<Tasks />} />
-      <Route path=':taskId' />
-    </Route>
-  </Routes>
+  <>
+    <PageContent>
+      <Routes>
+        <Route path='/tasks'>
+          <Route index element={<Tasks />} />
+          <Route path=':taskId' element={<Flow />} />
+        </Route>
+
+        <Route path='/workers'>
+          <Route index element={<Workers />} />
+          <Route path=':workerId' element={<Flow />} />
+        </Route>
+      </Routes>
+    </PageContent>
+  </>
 ;
 
-ReactDOM.render(
+const root = createRoot(
+  document.getElementById('root') as HTMLDivElement
+);
+
+root.render(
   <BrowserRouter>
     <App />
   </BrowserRouter>,
-  document.getElementById('root'),
 );
