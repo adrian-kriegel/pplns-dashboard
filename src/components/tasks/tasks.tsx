@@ -49,6 +49,10 @@ export default function Tasks()
           key: 'title',
           label: 'Name',
         },
+        {
+          key: 'createdAt',
+          label: 'Created At',
+        },
       ]
     }
     // TODO paginate

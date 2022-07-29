@@ -17,6 +17,7 @@ import '@fontsource/nunito';
 import Tasks from './components/tasks/tasks';
 import Flow from './components/flow/flow';
 import Workers from './components/workers/workers';
+import TaskDetails from './components/tasks/task-details';
 
 
 const App = () => 
@@ -25,7 +26,10 @@ const App = () =>
       <Routes>
         <Route path='/tasks'>
           <Route index element={<Tasks />} />
-          <Route path=':taskId' element={<Flow />} />
+          <Route
+            path=':taskId' 
+            element={<TaskDetails />}
+          />
         </Route>
 
         <Route path='/workers'>

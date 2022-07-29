@@ -24,6 +24,12 @@ type WorkerDetailsProps =
   onSave: (w: Worker) => any;
 }
 
+export type WorkersProps = 
+{
+  columns?: (keyof Worker)[];
+  onClick?: (w: Worker) => any;
+}
+
 /**
  * 
  * @param param0 props
@@ -131,7 +137,10 @@ function WorkerDetails(
  * @returns worker overview
  */
 export default function Workers(
-  { columns = ['title', 'createdAt'] } : { columns: (keyof Worker)[] }
+  {
+    columns = ['title', 'createdAt'],
+    onClick,
+  } : WorkersProps
 )
 {
   const [selectedWorker, setSelectedWorker] = useState<Worker | WorkerWrite>();
@@ -203,7 +212,11 @@ export default function Workers(
       fetchData={() => get<GetResponse<Worker>>(
         '/workers'
       )}
-      rowProps={({ _id }) => ({ href: `/workers/${_id}` })}
+      rowProps={
+        (worker) => onClick ? 
+          { onClick: () => onClick(worker) } :
+          { href: `/workers/${worker._id}` }
+      }
     />
   </>;
 }
