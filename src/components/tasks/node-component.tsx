@@ -37,7 +37,7 @@ function NodeHandle(
   const isInput = type === 'source';
 
   return <Handle
-    id={(isInput ? 'in-' : 'out-') + label}
+    id={label}
     type={type}
     position={isInput ? Position.Left : Position.Right}
     className={

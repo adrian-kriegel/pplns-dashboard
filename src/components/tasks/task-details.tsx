@@ -10,17 +10,18 @@ import {
   useEffect,
   createContext,
   useContext,
+  useMemo,
 } from 'react';
 
 import { useParams } from 'react-router';
 
 import ReactFlow, {
-  applyEdgeChanges,
   applyNodeChanges,
   Edge,
   Node as FlowNodeGeneric,
   NodeChange,
   NodeTypes,
+  OnConnect,
 } from 'react-flow-renderer';
 
 import LoadingFrame from '@unologin/react-ui/info/loading';
@@ -36,6 +37,7 @@ export type PipelineProps =
 {
   task: Task;
   nodes: NodeRead[];
+  nodesById: NodesById;
 
   onNodeChanged: (
     nodeId : NodeRead['_id'],
@@ -78,15 +80,44 @@ export function apiNodeToFlowNode(
 
 /**
  * @param nodes nodes from the API
+ * @param nodesById nodes by id
  * @returns flow nodes and edges
  */
 export function apiNodesToFlow(
-  nodes: NodeRead[]
+  nodes: NodeRead[],
+  nodesById : NodesById
 ) : [FlowNode[], Edge[]]
 {
   const flowNodes = nodes.map(apiNodeToFlowNode);
 
   const edges : Edge[] = [];
+  
+  for (const consumer of nodes)
+  {
+    for (const input of consumer.inputs)
+    {
+      const inputLabel = input.inputChannel;
+
+      if (input.nodeId in nodesById)
+      {
+        edges.push(
+          {
+            // eslint-disable-next-line max-len
+            id: `e-${input.nodeId}-${input.outputChannel}-${consumer._id}-${inputLabel}`,
+            targetHandle: input.outputChannel,
+            sourceHandle: inputLabel,
+            target: input.nodeId,
+            source: consumer._id,
+          }
+        );
+      }
+      else 
+      {
+        console.error(input);
+        console.error('Invalid connection.');
+      }
+    }
+  }
 
   return [flowNodes, edges];
 }
@@ -99,20 +130,19 @@ export function Pipeline(
   props : PipelineProps
 )
 {
-  const { nodes, onNodeChanged } = props;
+  const { nodes, onNodeChanged, nodesById } = props;
 
-  // using state for edges and nodes instead of using props
-  // because the built in handlers are better at allowing for animations when interacting
-  const [flowNodes, setNodes] = useState<FlowNode[]>([]);
-  const [flowEdges, setEdges] = useState<Edge[]>([]);
+  // using state for edges and nodes to allow for smoother animations without having to re-call apiNodesToFlow e. g. when dragging nodes
+  const [flowNodes, setFlowNodes] = useState<FlowNode[]>([]);
+  const [flowEdges, setFlowEdges] = useState<Edge[]>([]);
 
   useEffect(
     () => 
     {
-      const [newNodes, newEdges] = apiNodesToFlow(nodes);
-
-      setNodes(newNodes);
-      setEdges(newEdges);
+      const [flowNodes, flowEdges] = apiNodesToFlow(nodes, nodesById);
+  
+      setFlowEdges(flowEdges);
+      setFlowNodes(flowNodes);
     },
     [nodes]
   );
@@ -121,7 +151,7 @@ export function Pipeline(
   {
     const newNodes = applyNodeChanges(changes, flowNodes);
 
-    setNodes(newNodes);
+    setFlowNodes(newNodes);
 
     for (const change of changes)
     {
@@ -136,13 +166,42 @@ export function Pipeline(
     }
   };
 
+  const onConnect : OnConnect = (connection) => 
+  {
+    const consumerId = connection.source;
+
+    if (!consumerId)
+    {
+      console.error(connection);
+      throw new Error('Invalid connection');
+    }
+
+    const consumer = nodes[nodesById[consumerId]];
+    
+    onNodeChanged(
+      consumerId,
+      {
+        inputs: 
+        [
+          ...consumer.inputs,
+          {
+            nodeId: connection.target as string,
+            outputChannel: connection.targetHandle as string,
+            inputChannel: connection.sourceHandle as string,
+          },
+        ],
+      },
+      true,
+    );
+  };
+
   return <div
     style={{width: '800px', height: '500px'}}
   >
     <PipelineContext.Provider value={props}>
       <ReactFlow
         onNodesChange={onNodesChanged}
-        onEdgesChange={(c) => setEdges(applyEdgeChanges(c, flowEdges))}
+        onConnect={onConnect}
         nodes={flowNodes}
         edges={flowEdges}
         nodeTypes={nodeTypes}
@@ -151,6 +210,8 @@ export function Pipeline(
     </PipelineContext.Provider>
   </div>;
 }
+
+type NodesById = { [k: string]: number };
 
 /**
  * 
@@ -169,6 +230,13 @@ export default function TaskDetails(
   const [task, setTask] = useState<Task>();
 
   const [nodes, setNodes] = useState<NodeRead[]>([]);
+
+  const nodesById = useMemo<NodesById>(
+    () => Object.fromEntries(
+      nodes.map((node, index) => [node._id, index])
+    ),
+    [nodes]
+  );
 
   const fetchData = async () => 
   {
@@ -229,13 +297,13 @@ export default function TaskDetails(
   {
     return <>
       <Pipeline 
-        {...{task, nodes}}
+        {...{task, nodes, nodesById}}
         onNodeChanged={
           (nodeId, change, flush) => 
           {
             const newNodes = [...nodes];
 
-            const i = nodes.findIndex(({ _id }) => _id === nodeId);
+            const i = nodesById[nodeId];
 
             if (change === 'delete')
             {
