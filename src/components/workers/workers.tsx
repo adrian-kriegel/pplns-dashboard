@@ -16,6 +16,8 @@ import Overlay from '@unologin/react-ui/navigation/overlay';
 import { useState } from 'react';
 import useRefresh from '../../hooks/use-refresh';
 
+import DataRecordInput from '../inputs/data-record-input';
+
 type WorkerDetailsProps = 
 {
   worker: Worker | WorkerWrite;
@@ -42,6 +44,9 @@ function WorkerDetails(
     worker.description,
   );
 
+  const [inputs, setInputs] = useState(worker.inputs);
+  const [outputs, setOutputs] = useState(worker.outputs);
+
   const btn = useButton();
 
   const save = async () => 
@@ -50,6 +55,15 @@ function WorkerDetails(
 
     let result : Worker;
 
+
+    const changes = 
+    {
+      title: name,
+      description,
+      inputs,
+      outputs,
+    };
+
     if ('_id' in worker)
     {
       result = await patch<Worker>(
@@ -57,10 +71,7 @@ function WorkerDetails(
           '/workers/:workerId',
           { workerId: worker._id }
         ),
-        {
-          title: name,
-          description,
-        }
+        changes
       );
     }
     else 
@@ -69,8 +80,7 @@ function WorkerDetails(
         '/workers',
         {
           ...worker,
-          title: name,
-          description,
+          ...changes,
         }
       );
     }
@@ -92,6 +102,20 @@ function WorkerDetails(
     <TextArea
       value={description}
       onChange={setDescription}
+    />
+    <h3>
+      Inputs
+    </h3>
+    <DataRecordInput
+      value={inputs}
+      onChange={setInputs}
+    />
+    <h3>
+      Outputs
+    </h3>
+    <DataRecordInput
+      value={outputs}
+      onChange={setOutputs}
     />
     <Button
       label='save'
