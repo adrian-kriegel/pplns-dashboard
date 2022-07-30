@@ -11,6 +11,7 @@ import {
   createContext,
   useContext,
   useMemo,
+  useCallback,
 } from 'react';
 
 import { useParams } from 'react-router';
@@ -30,6 +31,9 @@ import * as api from '../../api';
 import Workers from '../workers/workers';
 
 import NodeComponent from './node-component';
+
+import './flow-styles.scss';
+import onKeyPressed from '../../hooks/on-keypressed';
 
 export type FlowNode = FlowNodeGeneric<{ node : NodeRead }>;
 
@@ -81,11 +85,12 @@ export function apiNodeToFlowNode(
 /**
  * @param nodes nodes from the API
  * @param nodesById nodes by id
+ * @param deleteInput input deletion callback
  * @returns flow nodes and edges
  */
 export function apiNodesToFlow(
   nodes: NodeRead[],
-  nodesById : NodesById
+  nodesById : NodesById,
 ) : [FlowNode[], Edge[]]
 {
   const flowNodes = nodes.map(apiNodeToFlowNode);
@@ -108,15 +113,17 @@ export function apiNodesToFlow(
             sourceHandle: input.outputChannel,
             source: input.nodeId,
             target: consumer._id,
+            // label: `${sourceNode.worker.title}.${input.outputChannel}`,
             // type: 'smoothstep',
             zIndex: 1,
+            className: 'flow-edge',
           }
         );
       }
       else 
       {
-        console.error(input);
-        console.error('Invalid connection.');
+        console.error({ input, consumer });
+        console.error('Deleting invalid connection.');
       }
     }
   }
@@ -141,7 +148,10 @@ export function Pipeline(
   useEffect(
     () => 
     {
-      const [flowNodes, flowEdges] = apiNodesToFlow(nodes, nodesById);
+      const [flowNodes, flowEdges] = apiNodesToFlow(
+        nodes,
+        nodesById,
+      );
   
       setFlowEdges(flowEdges);
       setFlowNodes(flowNodes);
@@ -210,6 +220,35 @@ export function Pipeline(
     }
   };
 
+  // delete the edge to the specified input on the consumer node
+  const deleteInput = useCallback(
+    (consumer : NodeRead, inputChannel : string) => 
+    {
+      onNodeChanged(
+        consumer._id,
+        { 
+          inputs: consumer.inputs.filter(
+            ({ inputChannel: c }) => c === inputChannel
+          ), 
+        },
+        true
+      );
+    },
+    [flowEdges]
+  );
+
+  onKeyPressed('Delete', () => 
+  {
+    const selected = flowEdges.find(({ selected }) => selected);
+    
+    if (selected)
+    {
+      const consumer = nodes[nodesById[selected.target]];
+
+      deleteInput(consumer, selected.targetHandle as string);
+    }
+  });
+
   return <div
     style={{width: '800px', height: '500px'}}
   >
@@ -220,6 +259,19 @@ export function Pipeline(
         nodes={flowNodes}
         edges={flowEdges}
         nodeTypes={nodeTypes}
+        onEdgeClick={
+          (_, clickedEdge) => 
+          {
+            const newEdges = [...flowEdges];
+
+            for (const edge of newEdges)
+            {
+              edge.selected = (edge.id === clickedEdge.id);
+            }
+
+            setFlowEdges(newEdges);
+          }
+        }
         fitView
       />
     </PipelineContext.Provider>
