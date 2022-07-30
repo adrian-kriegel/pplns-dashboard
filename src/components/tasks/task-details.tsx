@@ -228,13 +228,13 @@ export function Pipeline(
         consumer._id,
         { 
           inputs: consumer.inputs.filter(
-            ({ inputChannel: c }) => c === inputChannel
+            ({ inputChannel: c }) => c !== inputChannel
           ), 
         },
         true
       );
     },
-    [flowEdges]
+    [flowEdges, onNodeChanged]
   );
 
   onKeyPressed('Delete', () => 
@@ -318,14 +318,6 @@ export default function TaskDetails(
     setNodes(nodes.results);
   };
 
-  // TODO display loading state or something
-  const flushNode = async (node : NodeRead) => 
-  {
-    await api.patch(
-      `/tasks/${taskId}/nodes/${node._id}`,
-      node,
-    );
-  };
 
   useEffect(
     () => { fetchData(); },
@@ -351,6 +343,18 @@ export default function TaskDetails(
     ]);
   };
 
+  // TODO display loading state or something
+  const patchNode = async (
+    nodeId: string, 
+    changes : Partial<NodeRead>
+  ) => 
+  {
+    await api.patch(
+      `/tasks/${taskId}/nodes/${nodeId}`,
+      changes,
+    );
+  };
+
   const deleteNode = async (
     nodeId: NodeRead['_id'],
   ) => 
@@ -368,16 +372,28 @@ export default function TaskDetails(
         onNodeChanged={
           (nodeId, change, flush) => 
           {
-            const newNodes = [...nodes];
+            let newNodes;
 
             const i = nodesById[nodeId];
 
             if (change === 'delete')
             {
+              newNodes = nodes.map(
+                (node) => (
+                  {
+                    ...node,
+                    inputs: node.inputs.filter(
+                      (input) => input.nodeId !== nodeId 
+                    ),
+                  }
+                )
+              );
+
               newNodes.splice(i, 1);
             }
             else 
             {
+              newNodes = [...nodes];
               newNodes[i] = 
               {
                 ...newNodes[i],
@@ -395,7 +411,7 @@ export default function TaskDetails(
               }
               else 
               {
-                return flushNode(newNodes[i]);
+                return patchNode(nodeId, change);
               }
             }
           }
