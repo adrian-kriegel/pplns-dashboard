@@ -104,10 +104,12 @@ export function apiNodesToFlow(
           {
             // eslint-disable-next-line max-len
             id: `e-${input.nodeId}-${input.outputChannel}-${consumer._id}-${inputLabel}`,
-            targetHandle: input.outputChannel,
-            sourceHandle: inputLabel,
-            target: input.nodeId,
-            source: consumer._id,
+            targetHandle: inputLabel,
+            sourceHandle: input.outputChannel,
+            source: input.nodeId,
+            target: consumer._id,
+            // type: 'smoothstep',
+            zIndex: 1,
           }
         );
       }
@@ -159,6 +161,8 @@ export function Pipeline(
       {
         onNodeChanged(
           change.id,
+          // TODO: this can probably be done using nodesById
+          // but idk if the nodes will stay in order after applyNodeChanges (they probably do)
           { position: newNodes.find(({ id }) => id === change.id)?.position },
           true,
         );
@@ -168,7 +172,7 @@ export function Pipeline(
 
   const onConnect : OnConnect = (connection) => 
   {
-    const consumerId = connection.source;
+    const consumerId = connection.target;
 
     if (!consumerId)
     {
@@ -178,21 +182,32 @@ export function Pipeline(
 
     const consumer = nodes[nodesById[consumerId]];
     
-    onNodeChanged(
-      consumerId,
-      {
-        inputs: 
-        [
-          ...consumer.inputs,
-          {
-            nodeId: connection.target as string,
-            outputChannel: connection.targetHandle as string,
-            inputChannel: connection.sourceHandle as string,
-          },
-        ],
-      },
-      true,
+    const inputChannel = connection.targetHandle as string;
+    const outputChannel = connection.sourceHandle as string;
+
+    // check if there already is a connection on the same input
+    const existingConnection = consumer.inputs.find(
+      ({ inputChannel: c }) => inputChannel === c
     );
+
+    if (!existingConnection)
+    {
+      onNodeChanged(
+        consumerId,
+        {
+          inputs: 
+          [
+            ...consumer.inputs,
+            {
+              nodeId: connection.source as string,
+              outputChannel,
+              inputChannel,
+            },
+          ],
+        },
+        true,
+      );
+    }
   };
 
   return <div

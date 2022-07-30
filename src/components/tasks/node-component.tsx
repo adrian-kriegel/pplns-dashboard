@@ -34,7 +34,7 @@ function NodeHandle(
   }
 )
 {
-  const isInput = type === 'source';
+  const isInput = type === 'target';
 
   return <Handle
     id={label}
@@ -89,7 +89,7 @@ export default function NodeComponent(
         ([key], index) => <NodeHandle 
           label={key} 
           key={key}
-          type='source'
+          type='target'
           index={index}
         />
       )
@@ -99,7 +99,7 @@ export default function NodeComponent(
         ([key], index) => <NodeHandle 
           label={key} 
           key={key}
-          type='target'
+          type='source'
           index={index}
         />
       )
