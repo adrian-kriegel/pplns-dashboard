@@ -19,11 +19,14 @@ import { useParams } from 'react-router';
 import ReactFlow, {
   applyNodeChanges,
   Edge,
+  EdgeTypes,
   Node as FlowNodeGeneric,
   NodeChange,
   NodeTypes,
   OnConnect,
 } from 'react-flow-renderer';
+
+import { SmartStepEdge } from '@tisoap/react-flow-smart-edge';
 
 import LoadingFrame from '@unologin/react-ui/info/loading';
 
@@ -63,6 +66,11 @@ export const usePipeline = () => useContext(PipelineContext);
 const nodeTypes : NodeTypes = 
 {
   node: NodeComponent,
+};
+
+const edgeTypes : EdgeTypes = 
+{
+  default: SmartStepEdge,
 };
 
 /**
@@ -114,7 +122,7 @@ export function apiNodesToFlow(
             source: input.nodeId,
             target: consumer._id,
             // label: `${sourceNode.worker.title}.${input.outputChannel}`,
-            // type: 'smoothstep',
+            type: 'default',
             zIndex: 1,
             className: 'flow-edge',
           }
@@ -250,7 +258,7 @@ export function Pipeline(
   });
 
   return <div
-    style={{width: '800px', height: '500px'}}
+    style={{width: '1600px', height: '700px'}}
   >
     <PipelineContext.Provider value={props}>
       <ReactFlow
@@ -259,6 +267,7 @@ export function Pipeline(
         nodes={flowNodes}
         edges={flowEdges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onEdgeClick={
           (_, clickedEdge) => 
           {
