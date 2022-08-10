@@ -12,6 +12,7 @@ import {
   useContext,
   useMemo,
   useCallback,
+  useRef,
 } from 'react';
 
 import { useParams } from 'react-router';
@@ -26,7 +27,7 @@ import ReactFlow, {
   OnConnect,
 } from 'react-flow-renderer';
 
-import { SmartStepEdge } from '@tisoap/react-flow-smart-edge';
+import { SmartBezierEdge } from '@tisoap/react-flow-smart-edge';
 
 import LoadingFrame from '@unologin/react-ui/info/loading';
 
@@ -37,6 +38,8 @@ import NodeComponent from './node-component';
 
 import './flow-styles.scss';
 import onKeyPressed from '../../hooks/on-keypressed';
+import { ContextMenu } from '../general/context-menu';
+import { MenuItem, SubMenu } from '@szhsin/react-menu';
 
 export type FlowNode = FlowNodeGeneric<{ node : NodeRead }>;
 
@@ -70,7 +73,7 @@ const nodeTypes : NodeTypes =
 
 const edgeTypes : EdgeTypes = 
 {
-  default: SmartStepEdge,
+  default: SmartBezierEdge,
 };
 
 /**
@@ -138,6 +141,14 @@ export function apiNodesToFlow(
 
   return [flowNodes, edges];
 }
+
+const internalNodes = 
+[
+  'split', 
+  'join',
+  'data-source',
+  'data-sink',
+];
 
 /**
  * @param props PipelineProps
@@ -314,6 +325,8 @@ export default function TaskDetails(
     [nodes]
   );
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const fetchData = async () => 
   {
     const [task, nodes] = await Promise.all(
@@ -375,7 +388,7 @@ export default function TaskDetails(
 
   if (task && nodes)
   {
-    return <>
+    return <div ref={containerRef}>
       <Pipeline 
         {...{task, nodes, nodesById}}
         onNodeChanged={
@@ -436,7 +449,32 @@ export default function TaskDetails(
           )
         }
       />
-    </>;
+      
+      <ContextMenu
+        container={containerRef}
+      >
+        {/* TODO: add menu for custom nodes */}
+        <SubMenu label="generic node">
+          {
+            internalNodes.map((id) => 
+              <MenuItem 
+                onClick={
+                  () => createNode(
+                    {
+                      internalWorker: id,
+                      // TODO: position the node at the mouse position
+                      position: { x: 0, y: 0 },
+                    }
+                  )
+                }
+              >
+                {id}
+              </MenuItem>
+            )
+          }
+        </SubMenu>
+      </ContextMenu>
+    </div>;
   }
   else 
   {

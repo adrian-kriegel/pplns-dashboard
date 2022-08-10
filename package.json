@@ -67,6 +67,7 @@
   },
   "dependencies": {
     "@fontsource/nunito": "^4.5.9",
+    "@szhsin/react-menu": "^3.1.2",
     "@tisoap/react-flow-smart-edge": "^2.0.0",
     "@unologin/react-ui": "ssh://git@github.com:unologin/react-ui",
     "history": "^5.3.0",
