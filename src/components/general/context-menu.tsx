@@ -60,11 +60,13 @@ export function ContextMenu(
   {
     container.current?.addEventListener('contextmenu', handleOpen);
     container.current?.addEventListener('click', handleClose);
+    container.current?.addEventListener('mouseleave', handleClose);
 
     return () => 
     {
       container.current?.removeEventListener('contextmenu', handleOpen);
       container.current?.removeEventListener('click', handleClose);
+      container.current?.removeEventListener('mouseleave', handleClose);
     };
 
   }, [container.current]);

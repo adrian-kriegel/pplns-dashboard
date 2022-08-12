@@ -37,14 +37,19 @@
     .node-handle-label
     {
       font-family: monospace;
-      position: relative;
 
-      position: relative;
+      position: absolute;
       top: -4px;
       float: left;
       text-align: right;
-      width: 100px;
-      right: 105px;
+    }
+
+    &.node-handle-output
+    {
+      .node-handle-label
+      {
+        right: 15px;
+      }
     }
 
     &.node-handle-input

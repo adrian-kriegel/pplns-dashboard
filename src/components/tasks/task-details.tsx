@@ -201,6 +201,7 @@ export function Pipeline(
 
   const onConnect : OnConnect = (connection) => 
   {
+    console.log(connection);
     const consumerId = connection.target;
 
     if (!consumerId)
@@ -458,6 +459,7 @@ export default function TaskDetails(
           {
             internalNodes.map((id) => 
               <MenuItem 
+                key={id}
                 onClick={
                   () => createNode(
                     {

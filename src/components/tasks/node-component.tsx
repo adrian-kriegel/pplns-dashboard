@@ -43,13 +43,25 @@ function NodeHandle(
     className={
       'node-handle ' + (isInput ? 'node-handle-input' : 'node-handle-output')
     }
-    style={{top: ((index + 1) * handleSpacing + headerHeight) + 'px'}}
+    style={
+      {
+        top: ((index + 1) * handleSpacing + headerHeight) + 'px',
+      }
+    }
   >
-    <div className='node-handle-label'>
+    <div 
+      className='node-handle-label'
+    >
       {label}
     </div>
   </Handle>;
 }
+
+const getMaxStringLength = (strings : string[]) => 
+  strings.length > 0 ? 
+    Math.max(...strings.map((s) => s.length)) : 
+    0
+;
 
 /**
  * 
@@ -70,9 +82,19 @@ export default function NodeComponent(
     Object.entries(outputs).length
   ) + 1) * handleSpacing + headerHeight + 'px';
 
+  // TODO: proper width calculation
+  const width = (
+    Math.max(
+      getMaxStringLength(Object.keys(node.worker.inputs)) +
+      getMaxStringLength(Object.keys(node.worker.outputs)),
+      node.worker.title.length + 2
+    )
+  ) * 5 + 30 + 'px';
+
   return <div 
     className='flow-node'
-    style={{height}}
+    style={{height, width}}
+    onClick={() => console.log('Selected Node', node)}
   >
     <div className='flow-node-header' style={{height: headerHeight}}>
       {node.worker.title}
