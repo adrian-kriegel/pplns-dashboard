@@ -9,8 +9,11 @@ import type {
   NodeRead,
 } from 'annotation-api/src/schemas/pipeline';
 
-import './node-component.scss';
 import { usePipeline } from './task-details';
+
+import { useRef } from 'react';
+
+import './node-component.scss';
 
 export type NodeComponentProps = 
 {
@@ -74,6 +77,8 @@ export default function NodeComponent(
 {
   const { onNodeChanged } = usePipeline();
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   const inputs = node.worker.inputs;
   const outputs = node.worker.outputs;
 
@@ -92,11 +97,16 @@ export default function NodeComponent(
   ) * 5 + 30 + 'px';
 
   return <div 
+    id={node._id}
+    ref={containerRef}
     className='flow-node'
     style={{height, width}}
     onClick={() => console.log('Selected Node', node)}
   >
-    <div className='flow-node-header' style={{height: headerHeight}}>
+    <div 
+      data-node-id={node._id}
+      className='flow-node-header' style={{height: headerHeight}}
+    >
       {node.worker.title}
       
       <div

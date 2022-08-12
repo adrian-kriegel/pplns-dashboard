@@ -1,6 +1,5 @@
 
 import {
-  PropsWithChildren, 
   RefObject, 
   useCallback,
   useEffect,
@@ -18,13 +17,8 @@ import './context-menu.scss';
 export type ContextMenuProps = 
 {
   container: RefObject<HTMLDivElement | undefined>;
+  render: (e : MouseEvent) => JSX.Element | null | string;
 }
-
-export const mousePos = 
-{
-  x: 0,
-  y: 0,
-};
 
 /**
  * 
@@ -32,27 +26,32 @@ export const mousePos =
  * @returns ContextMenu 
  */
 export function ContextMenu(
-  { children, container } : PropsWithChildren<ContextMenuProps>
+  { render, container } : ContextMenuProps
 )
 {
-  const [pos, setPos] = useState<{ x: number, y: number}>();
+  // event responsible for opening the menu
+  const [event, setEvent] = useState<MouseEvent | null>();
 
-  const [visible, setVisible] = useState(false);
+  const [pos, setPos] = useState<{ x: number, y: number }>(
+    { x: -1000, y: -1000 }
+  );
+
+  useEffect(
+    () => setPos({ x: event?.pageX || -1000, y: event?.pageY || -1000 }),
+    [event],
+  );
 
   const handleOpen = useCallback(
     (event : MouseEvent) => 
     {
       event.preventDefault();
-      setPos({ x: event.pageX, y: event.pageY });
-      mousePos.x = event.pageX;
-      mousePos.y = event.pageY;
-      setVisible(true);
+      setEvent(event);
     },
     [],
   );
 
   const handleClose = useCallback(
-    () => setVisible(false), 
+    () => setPos({ x: -1000, y: -1000 }), 
     []
   );
 
@@ -75,14 +74,13 @@ export function ContextMenu(
     className='context-menu'
     style={
       {
-        top: `${pos?.y || 0}px`,
-        left: `${pos?.x || 0}px`,
-        display: visible ? undefined : 'none',
+        top: `${pos?.y}px`,
+        left: `${pos?.x}px`,
       }
     }
   >
-    <ControlledMenu state={visible ? 'open' : 'closed'}>
-      { children }
+    <ControlledMenu state={'open'}>
+      { event && render(event) }
     </ControlledMenu>
   </div>;
 }

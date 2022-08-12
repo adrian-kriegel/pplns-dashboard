@@ -40,8 +40,11 @@ import './flow-styles.scss';
 import onKeyPressed from '../../hooks/on-keypressed';
 import { ContextMenu } from '../general/context-menu';
 import { MenuItem, SubMenu } from '@szhsin/react-menu';
+import NodeMenu from './node-menu';
 
 export type FlowNode = FlowNodeGeneric<{ node : NodeRead }>;
+
+export type NodeId = NodeRead['_id'];
 
 export type PipelineProps = 
 {
@@ -50,7 +53,7 @@ export type PipelineProps =
   nodesById: NodesById;
 
   onNodeChanged: (
-    nodeId : NodeRead['_id'],
+    nodeId : NodeId,
     change : Partial<NodeRead> | 'delete',
     flush : boolean 
   ) => unknown;
@@ -366,6 +369,53 @@ export default function TaskDetails(
     ]);
   };
 
+  const generalMenu = () => 
+    <>
+      { /* TODO: add menu for custom nodes */ }
+      <SubMenu label="generic node">
+        {
+          internalNodes.map((id) => 
+            <MenuItem 
+              key={id}
+              onClick={
+                () => createNode(
+                  {
+                    internalWorker: id,
+                    // TODO: position the node at the mouse position
+                    position: { x: 0, y: 0 },
+                  }
+                )
+              }
+            >
+              {id}
+            </MenuItem>
+          )
+        }
+      </SubMenu>
+    </>
+  ;
+
+  const renderConextMenu = (e : MouseEvent) => 
+  {
+    if (e.target instanceof HTMLDivElement)
+    {
+      const nodeId = e.target.getAttribute('data-node-id');
+
+      if (nodeId && nodeId in nodesById)
+      {
+        return <NodeMenu node={nodes[nodesById[nodeId]]} />;
+      }
+      else 
+      {
+        return generalMenu();
+      }
+    }
+    else 
+    {
+      return null;
+    }
+  };
+
   // TODO display loading state or something
   const patchNode = async (
     nodeId: string, 
@@ -453,29 +503,8 @@ export default function TaskDetails(
       
       <ContextMenu
         container={containerRef}
-      >
-        {/* TODO: add menu for custom nodes */}
-        <SubMenu label="generic node">
-          {
-            internalNodes.map((id) => 
-              <MenuItem 
-                key={id}
-                onClick={
-                  () => createNode(
-                    {
-                      internalWorker: id,
-                      // TODO: position the node at the mouse position
-                      position: { x: 0, y: 0 },
-                    }
-                  )
-                }
-              >
-                {id}
-              </MenuItem>
-            )
-          }
-        </SubMenu>
-      </ContextMenu>
+        render={renderConextMenu}
+      />
     </div>;
   }
   else 
