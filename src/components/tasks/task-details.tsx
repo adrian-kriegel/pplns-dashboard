@@ -3,7 +3,7 @@ import type {
   Task,
   NodeRead,
   NodeWrite,
-} from 'annotation-api/src/schemas/pipeline';
+} from 'annotation-api/src/pipeline/schemas';
 
 import {
   useState,
@@ -27,6 +27,8 @@ import ReactFlow, {
   OnConnect,
 } from 'react-flow-renderer';
 
+import LogContext from '@unologin/react-ui/info/log-context';
+
 import { SmartBezierEdge } from '@tisoap/react-flow-smart-edge';
 
 import LoadingFrame from '@unologin/react-ui/info/loading';
@@ -41,6 +43,7 @@ import onKeyPressed from '../../hooks/on-keypressed';
 import { ContextMenu } from '../general/context-menu';
 import { MenuItem, SubMenu } from '@szhsin/react-menu';
 import NodeMenu from './node-menu';
+import LogInfo from '@unologin/react-ui/info/log-info';
 
 export type FlowNode = FlowNodeGeneric<{ node : NodeRead }>;
 
@@ -440,56 +443,76 @@ export default function TaskDetails(
   if (task && nodes)
   {
     return <div ref={containerRef}>
-      <Pipeline 
-        {...{task, nodes, nodesById}}
-        onNodeChanged={
-          (nodeId, change, flush) => 
-          {
-            let newNodes;
-
-            const i = nodesById[nodeId];
-
-            if (change === 'delete')
+      <LogContext.Provider >
+        <Pipeline 
+          {...{task, nodes, nodesById}}
+          onNodeChanged={
+            (nodeId, change, flush) => 
             {
-              newNodes = nodes.map(
-                (node) => (
-                  {
-                    ...node,
-                    inputs: node.inputs.filter(
-                      (input) => input.nodeId !== nodeId 
-                    ),
-                  }
-                )
-              );
+              let newNodes;
 
-              newNodes.splice(i, 1);
-            }
-            else 
-            {
-              newNodes = [...nodes];
-              newNodes[i] = 
+              const i = nodesById[nodeId];
+
+              if (change === 'delete')
+              {
+                newNodes = nodes.map(
+                  (node) => (
+                    {
+                      ...node,
+                      inputs: node.inputs.filter(
+                        (input) => input.nodeId !== nodeId 
+                      ),
+                    }
+                  )
+                );
+
+                newNodes.splice(i, 1);
+              }
+              else 
+              {
+                newNodes = [...nodes];
+                newNodes[i] = 
               {
                 ...newNodes[i],
                 ...change,
               };
-            }
-
-            setNodes(newNodes);
-
-            if (flush)
-            {
-              if (change === 'delete')
-              {
-                return deleteNode(nodeId);
               }
-              else 
+
+              setNodes(newNodes);
+
+              if (flush)
               {
-                return patchNode(nodeId, change);
+                if (change === 'delete')
+                {
+                  return deleteNode(nodeId);
+                }
+                else 
+                {
+                  return patchNode(nodeId, change);
+                }
               }
             }
           }
-        }
-      />
+        />
+
+      
+        <ContextMenu
+          container={containerRef}
+          render={renderConextMenu}
+        />
+        <LogContext.Consumer>
+          {
+            ({ logs, removeLog }) => logs.map((log) => 
+              <LogInfo
+                type={log.type}
+                onClose={() => removeLog(log.id)}
+              >
+                {log.msg}
+              </LogInfo>
+            )
+          }
+        </LogContext.Consumer>
+      </LogContext.Provider>
       <Workers
         onClick={
           (worker) => createNode(
@@ -499,11 +522,6 @@ export default function TaskDetails(
             }
           )
         }
-      />
-      
-      <ContextMenu
-        container={containerRef}
-        render={renderConextMenu}
       />
     </div>;
   }

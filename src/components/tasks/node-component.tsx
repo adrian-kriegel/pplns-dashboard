@@ -7,7 +7,7 @@ import {
 
 import type { 
   NodeRead,
-} from 'annotation-api/src/schemas/pipeline';
+} from 'annotation-api/src/pipeline/schemas';
 
 import { usePipeline } from './task-details';
 

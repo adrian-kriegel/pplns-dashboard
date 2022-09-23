@@ -2,7 +2,7 @@
 import Table from '@unologin/react-ui/data/table';
 import Button from '@unologin/react-ui/inputs/button';
 
-import type { Task, TaskWrite } from 'annotation-api/src/schemas/pipeline';
+import type { Task, TaskWrite } from 'annotation-api/src/pipeline/schemas';
 import { useNavigate } from 'react-router';
 import { get, GetResponse, post } from '../../api';
 

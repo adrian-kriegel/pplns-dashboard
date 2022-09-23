@@ -4,7 +4,7 @@ import Button from '@unologin/react-ui/inputs/button';
 import type {
   DataTypeDefinition,
   DataTypeRecord,
-} from 'annotation-api/src/schemas/pipeline';
+} from 'annotation-api/src/pipeline/schemas';
 
 import { useEffect, useState } from 'react';
 

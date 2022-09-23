@@ -6,7 +6,7 @@ import type {
   // eslint-disable-next-line
   Worker,
   WorkerWrite,
-} from 'annotation-api/src/schemas/pipeline';
+} from 'annotation-api/src/pipeline/schemas';
 import useButton from '@unologin/react-ui/hooks/use-button';
 import { get, GetResponse, patch, post, resource } from '../../api';
 

@@ -3,6 +3,7 @@ import {
   RefObject, 
   useCallback,
   useEffect,
+  useRef,
   useState,
 } from 'react';
 
@@ -36,6 +37,8 @@ export function ContextMenu(
     { x: -1000, y: -1000 }
   );
 
+  const menuRef = useRef<HTMLDivElement>(null);
+
   useEffect(
     () => setPos({ x: event?.pageX || -1000, y: event?.pageY || -1000 }),
     [event],
@@ -44,8 +47,11 @@ export function ContextMenu(
   const handleOpen = useCallback(
     (event : MouseEvent) => 
     {
-      event.preventDefault();
-      setEvent(event);
+      if (!menuRef.current?.contains(event.target as Node))
+      {
+        event.preventDefault();
+        setEvent(event);
+      }
     },
     [],
   );
@@ -55,17 +61,28 @@ export function ContextMenu(
     []
   );
 
+  const handleMouseLeave = useCallback(
+    (e : MouseEvent) => 
+    {
+      if (e.target === container.current)
+      {
+        handleClose();
+      }
+    },
+    [container.current]
+  );
+
   useEffect(() => 
   {
     container.current?.addEventListener('contextmenu', handleOpen);
     container.current?.addEventListener('click', handleClose);
-    container.current?.addEventListener('mouseleave', handleClose);
+    container.current?.addEventListener('mouseleave', handleMouseLeave);
 
     return () => 
     {
       container.current?.removeEventListener('contextmenu', handleOpen);
       container.current?.removeEventListener('click', handleClose);
-      container.current?.removeEventListener('mouseleave', handleClose);
+      container.current?.removeEventListener('mouseleave', handleMouseLeave);
     };
 
   }, [container.current]);
@@ -78,6 +95,7 @@ export function ContextMenu(
         left: `${pos?.x}px`,
       }
     }
+    ref={menuRef}
   >
     <ControlledMenu state={'open'}>
       { event && render(event) }
