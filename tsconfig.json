@@ -14,6 +14,7 @@
     "esModuleInterop": true,
     "declaration": false,
     "outDir": "./dist",
+    "baseUrl": "./src",
     "jsx": "react-jsx"
   },
   "include": 

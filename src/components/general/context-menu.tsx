@@ -57,32 +57,38 @@ export function ContextMenu(
   );
 
   const handleClose = useCallback(
-    () => setPos({ x: -1000, y: -1000 }), 
-    []
-  );
-
-  const handleMouseLeave = useCallback(
     (e : MouseEvent) => 
     {
-      if (e.target === container.current)
-      {
-        handleClose();
+      const t = e.target as HTMLElement;
+    
+      const targetInMenu = menuRef.current?.contains(t);
+      
+      if (
+        (t === container.current || !targetInMenu) ||
+        (
+          targetInMenu &&
+          t.getAttribute('role') === 'menuitem'
+        )
+      )
+      { 
+        setPos({ x: -1000, y: -1000 }); 
       }
-    },
+    }, 
     [container.current]
   );
+
 
   useEffect(() => 
   {
     container.current?.addEventListener('contextmenu', handleOpen);
     container.current?.addEventListener('click', handleClose);
-    container.current?.addEventListener('mouseleave', handleMouseLeave);
+    container.current?.addEventListener('mouseleave', handleClose);
 
     return () => 
     {
       container.current?.removeEventListener('contextmenu', handleOpen);
       container.current?.removeEventListener('click', handleClose);
-      container.current?.removeEventListener('mouseleave', handleMouseLeave);
+      container.current?.removeEventListener('mouseleave', handleClose);
     };
 
   }, [container.current]);

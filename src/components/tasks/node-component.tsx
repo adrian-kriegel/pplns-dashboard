@@ -7,7 +7,7 @@ import {
 
 import type { 
   NodeRead,
-} from 'annotation-api/src/pipeline/schemas';
+} from '@pplns/schemas';
 
 import { usePipeline } from './task-details';
 
@@ -101,7 +101,6 @@ export default function NodeComponent(
     ref={containerRef}
     className='flow-node'
     style={{height, width}}
-    onClick={() => console.log('Selected Node', node)}
   >
     <div 
       data-node-id={node._id}

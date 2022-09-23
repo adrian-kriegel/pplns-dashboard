@@ -6,7 +6,7 @@ import type {
   // eslint-disable-next-line
   Worker,
   WorkerWrite,
-} from 'annotation-api/src/pipeline/schemas';
+} from '@pplns/schemas';
 import useButton from '@unologin/react-ui/hooks/use-button';
 import { get, GetResponse, patch, post, resource } from '../../api';
 
@@ -70,7 +70,7 @@ function WorkerDetails(
       outputs,
     };
 
-    if ('_id' in worker)
+    if (worker._id)
     {
       result = await patch<Worker>(
         resource(
@@ -194,6 +194,7 @@ export default function Workers(
             {
               setSelectedWorker(
                 {
+                  _id: 'no-id',
                   title: '',
                   description: '',
                   inputs: {},

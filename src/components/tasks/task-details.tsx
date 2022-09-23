@@ -3,7 +3,7 @@ import type {
   Task,
   NodeRead,
   NodeWrite,
-} from 'annotation-api/src/pipeline/schemas';
+} from '@pplns/schemas';
 
 import {
   useState,
@@ -34,16 +34,15 @@ import { SmartBezierEdge } from '@tisoap/react-flow-smart-edge';
 import LoadingFrame from '@unologin/react-ui/info/loading';
 
 import * as api from '../../api';
-import Workers from '../workers/workers';
 
 import NodeComponent from './node-component';
 
 import './flow-styles.scss';
 import onKeyPressed from '../../hooks/on-keypressed';
 import { ContextMenu } from '../general/context-menu';
-import { MenuItem, SubMenu } from '@szhsin/react-menu';
-import NodeMenu from './node-menu';
+import NodeMenu from './context-menus/node-context-menu';
 import LogInfo from '@unologin/react-ui/info/log-info';
+import TaskContextMenu from './context-menus/task-context-menu';
 
 export type FlowNode = FlowNodeGeneric<{ node : NodeRead }>;
 
@@ -60,6 +59,10 @@ export type PipelineProps =
     change : Partial<NodeRead> | 'delete',
     flush : boolean 
   ) => unknown;
+
+  createNode: (node : Omit<NodeWrite, 'inputs'>) => any;
+
+  patchNode: (nodeId: string, changes : Partial<NodeWrite>) => any;
 }
 
 export type TaskDetailsProps = 
@@ -148,14 +151,6 @@ export function apiNodesToFlow(
   return [flowNodes, edges];
 }
 
-const internalNodes = 
-[
-  'split', 
-  'join',
-  'data-source',
-  'data-sink',
-];
-
 /**
  * @param props PipelineProps
  * @returns pipeline editor
@@ -207,7 +202,6 @@ export function Pipeline(
 
   const onConnect : OnConnect = (connection) => 
   {
-    console.log(connection);
     const consumerId = connection.target;
 
     if (!consumerId)
@@ -275,7 +269,34 @@ export function Pipeline(
     }
   });
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const renderContextMenu = useCallback(
+    (e : MouseEvent) => 
+    {
+      if (e.target instanceof HTMLDivElement)
+      {
+        const nodeId = e.target.getAttribute('data-node-id');
+
+        if (nodeId && nodeId in nodesById)
+        {
+          return <NodeMenu node={nodes[nodesById[nodeId]]} />;
+        }
+        else 
+        {
+          return <TaskContextMenu />;
+        }
+      }
+      else 
+      {
+        return null;
+      }
+    },
+    [nodes],
+  );
+
   return <div
+    ref={containerRef}
     style={{width: '1600px', height: '700px'}}
   >
     <PipelineContext.Provider value={props}>
@@ -300,6 +321,11 @@ export function Pipeline(
           }
         }
         fitView
+      />
+
+      <ContextMenu
+        container={containerRef}
+        render={renderContextMenu}
       />
     </PipelineContext.Provider>
   </div>;
@@ -372,53 +398,6 @@ export default function TaskDetails(
     ]);
   };
 
-  const generalMenu = () => 
-    <>
-      { /* TODO: add menu for custom nodes */ }
-      <SubMenu label="generic node">
-        {
-          internalNodes.map((id) => 
-            <MenuItem 
-              key={id}
-              onClick={
-                () => createNode(
-                  {
-                    internalWorker: id,
-                    // TODO: position the node at the mouse position
-                    position: { x: 0, y: 0 },
-                  }
-                )
-              }
-            >
-              {id}
-            </MenuItem>
-          )
-        }
-      </SubMenu>
-    </>
-  ;
-
-  const renderConextMenu = (e : MouseEvent) => 
-  {
-    if (e.target instanceof HTMLDivElement)
-    {
-      const nodeId = e.target.getAttribute('data-node-id');
-
-      if (nodeId && nodeId in nodesById)
-      {
-        return <NodeMenu node={nodes[nodesById[nodeId]]} />;
-      }
-      else 
-      {
-        return generalMenu();
-      }
-    }
-    else 
-    {
-      return null;
-    }
-  };
-
   // TODO display loading state or something
   const patchNode = async (
     nodeId: string, 
@@ -445,7 +424,15 @@ export default function TaskDetails(
     return <div ref={containerRef}>
       <LogContext.Provider >
         <Pipeline 
-          {...{task, nodes, nodesById}}
+          {
+            ...{
+              task,
+              nodes,
+              nodesById,
+              createNode,
+              patchNode,
+            }
+          }
           onNodeChanged={
             (nodeId, change, flush) => 
             {
@@ -494,12 +481,6 @@ export default function TaskDetails(
             }
           }
         />
-
-      
-        <ContextMenu
-          container={containerRef}
-          render={renderConextMenu}
-        />
         <LogContext.Consumer>
           {
             ({ logs, removeLog }) => logs.map((log) => 
@@ -513,16 +494,6 @@ export default function TaskDetails(
           }
         </LogContext.Consumer>
       </LogContext.Provider>
-      <Workers
-        onClick={
-          (worker) => createNode(
-            {
-              workerId: worker._id,
-              position: { x: 0, y: 0 },
-            }
-          )
-        }
-      />
     </div>;
   }
   else 

@@ -1,10 +1,12 @@
 
 import { MenuItem } from '@szhsin/react-menu';
 import { useLog } from '@unologin/react-ui/info/log-context';
-import Overlay from '@unologin/react-ui/navigation/overlay';
-import { useState } from 'react';
-import type { NodeRead } from 'annotation-api/src/pipeline/schemas';
-import NodeProps from './node-props';
+
+import type { NodeRead } from '@pplns/schemas';
+import NodeProps from './edit-node-props';
+import PopupMenuItem from 'components/general/popup-menu-item';
+import OutputPreview from 'components/data-items/output-preview';
+
 
 /**
  * 
@@ -15,8 +17,6 @@ export default function NodeMenu(
   { node } : { node: NodeRead }
 )
 {
-  const [propertiesWindowOpen, setPropertiesWindowOpen] = useState(false);
-
   const { pushLog } = useLog();
 
   const successMsg = (msg : string) => pushLog(
@@ -24,11 +24,18 @@ export default function NodeMenu(
   );
 
   return <>
-    <MenuItem
-      onClick={() => setPropertiesWindowOpen(true)}
-    >
-      Properties
-    </MenuItem>
+    <PopupMenuItem 
+      label='Properties'
+      popup={() => <NodeProps node={node} />}
+    />
+    <PopupMenuItem 
+      label='Show outputs'
+      popup={
+        () => <OutputPreview
+          query={{nodeId: node._id, taskId: node.taskId}}
+        />
+      }
+    />
     <MenuItem
       onClick={
         () => 
@@ -40,12 +47,5 @@ export default function NodeMenu(
     >
       Copy NodeId
     </MenuItem>
-    {
-      propertiesWindowOpen && <Overlay
-        onClose={() => setPropertiesWindowOpen(false)}
-      >
-        <NodeProps node={node} />
-      </Overlay>
-    }
   </>;
 }
