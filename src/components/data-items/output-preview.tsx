@@ -24,12 +24,11 @@ export default function OutputPreview(
   ];
 
   return <Table<DataItem, never>
-
+    initialPageSize={5}
     columns={columns.map((key) => ({ key, label: key }))}
-    // TODO paginate
-    fetchData={() => get<GetResponse<DataItem>>(
+    fetchData={(q) => get<GetResponse<DataItem>>(
       '/outputs',
-      query,
+      { ...q, ...query },
     )}
   />;
 } 
