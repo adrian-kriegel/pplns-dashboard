@@ -2,8 +2,9 @@
 // eslint-disable-next-line no-redeclare
 import type { Worker } from '@pplns/schemas';
 import { MenuItem, SubMenu } from '@szhsin/react-menu';
-import { get } from 'api';
-import { useEffect, useState } from 'react';
+import LoadingAnimation from '@unologin/react-ui/info/loading';
+import { get, GetResponse, put, resource } from 'api';
+import { ChangeEvent, useEffect, useState } from 'react';
 import { usePipeline } from '../task-details';
 
 const internalNodes = 
@@ -65,9 +66,98 @@ function ImportedNodesMenu()
   );
 
   return <AddNodesMenu 
-    title='File system'
+    title='Server file system'
     workerIds={workers?.map(({_id}) => _id) || []}
   />;
+}
+
+/**
+ * @returns submenu for workers stored in the database
+ */
+function DatabaseWorkersMenu()
+{
+  const [workers, setWorkers] = useState<Worker[]>();
+
+  useEffect(
+    () => 
+    {
+      if (!workers)
+      {
+        get<GetResponse<Worker>>('/workers').then(
+          // [!] TODO: respect pagination and limits
+          ({ results }) => setWorkers(results)
+        );
+      }
+    }
+  );
+
+  return <AddNodesMenu 
+    title='Database'
+    workerIds={workers?.map(({_id}) => _id) || []}
+  />;
+}
+
+/**
+ * @returns menu item for uploading new workers from file
+ * 
+ * TODO: error handling
+ */
+function UploadWorkerMenu()
+{
+  const [loading, setLoading] = useState(false);
+
+  const onFileChanged = (e : ChangeEvent<HTMLInputElement>) => 
+  {
+    const file = e.target.files?.[0];
+
+    if (file)
+    {
+      setLoading(true);
+
+      const reader = new FileReader();
+
+      reader.onload = async (e) => 
+      {
+        try 
+        {
+          const fileText = e.target?.result?.toString();
+
+          if (fileText)
+          {
+            const worker = JSON.parse(fileText);
+
+            await put(
+              resource('/workers/:_id', { _id: worker._id }),
+              worker
+            );
+          }
+        }
+        finally 
+        {
+          setLoading(false);
+        }
+      };
+
+      reader.readAsText(file);
+    }
+  };
+
+  return <MenuItem>
+    {
+      loading ?
+        <LoadingAnimation /> :
+        <label htmlFor='upload-worker-input'>
+          Upload JSON file
+        </label>
+    }
+    <input
+      type='file'
+      id='upload-worker-input'
+      accept='text/*.json'
+      style={{display: 'none'}}
+      onChange={onFileChanged}
+    />
+  </MenuItem>;
 }
 
 /**
@@ -82,5 +172,7 @@ export default function TaskContextMenu()
       workerIds={internalNodes}
     />
     <ImportedNodesMenu />
+    <DatabaseWorkersMenu />
+    <UploadWorkerMenu />
   </>;
 }
