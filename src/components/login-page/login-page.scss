@@ -1,0 +1,30 @@
+
+.login-page
+{
+  text-align: center;
+  padding-top:  60px;
+
+  h2,&>span
+  {
+    display: block;
+    margin-bottom: 30px;
+  }
+
+  &>span 
+  {
+    font-size: 22px;
+  }
+
+  .login-button
+  {
+    display: inline-block;
+    min-width: 300px;
+    .login-button-left, 
+    .login-button-right
+    {
+      width: 50%;
+      text-align: center;
+      display: inline-block;
+    }
+  }
+}

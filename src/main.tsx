@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 
 import {
   BrowserRouter,
-  Routes,
+  Switch,
   Route,
 } from 'react-router-dom';
 
@@ -15,31 +15,26 @@ import '@unologin/react-ui/font.scss';
 import '@fontsource/nunito';
 
 import Tasks from './components/tasks/tasks';
-import Flow from './components/flow/flow';
-import Workers from './components/workers/workers';
+
 import TaskDetails from './components/tasks/task-details';
+import { SessionContextProvider, withSession } from 'context/session-context';
 
 
 const App = () => 
   <>
     <PageContent>
-      <Routes>
-        <Route path='/tasks'>
-          <Route index element={<Tasks />} />
-          <Route
-            path=':taskId' 
-            element={<TaskDetails />}
-          />
-        </Route>
-
-        <Route path='/workers'>
-          <Route index element={<Workers />} />
-          <Route path=':workerId' element={<Flow />} />
-        </Route>
-      </Routes>
+      <Switch>
+        <Route path='/tasks' exact={true} component={Tasks} />
+        <Route
+          path='/tasks/:taskId' 
+          component={TaskDetails}
+        />
+      </Switch>
     </PageContent>
   </>
 ;
+
+const AppWithLogin = withSession(App);
 
 const root = createRoot(
   document.getElementById('root') as HTMLDivElement
@@ -47,6 +42,8 @@ const root = createRoot(
 
 root.render(
   <BrowserRouter>
-    <App />
+    <SessionContextProvider>
+      <AppWithLogin />
+    </SessionContextProvider>
   </BrowserRouter>,
 );

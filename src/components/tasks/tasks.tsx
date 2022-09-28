@@ -3,7 +3,7 @@ import Table from '@unologin/react-ui/data/table';
 import Button from '@unologin/react-ui/inputs/button';
 
 import type { Task, TaskWrite } from '@pplns/schemas';
-import { useNavigate } from 'react-router';
+import { useHistory } from 'react-router';
 import { get, GetResponse, post } from '../../api';
 
 /**
@@ -12,7 +12,7 @@ import { get, GetResponse, post } from '../../api';
  */
 export default function Tasks()
 {
-  const navigate = useNavigate();
+  const history = useHistory();
 
   const createNewTask = async () => 
   {
@@ -29,7 +29,7 @@ export default function Tasks()
       task,
     )).split(' ');
 
-    navigate('/tasks/' + taskId);
+    history.push('/tasks/' + taskId);
   };
 
   return <Table<Task, never> 
