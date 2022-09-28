@@ -6,7 +6,7 @@
   "sideEffects": [],
   "scripts": {
     "dev": "TARGET_ENV=local webpack serve --mode development",
-    "build": "sh ./build.sh",
+    "build": "sh ./scripts/build.sh",
     "test": "jest",
     "check-typescript": "tsc",
     "lint": "eslint --fix --ext .ts,.tsx ./src ./test"

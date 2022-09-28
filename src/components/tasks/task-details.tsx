@@ -344,7 +344,7 @@ export default function TaskDetails(
 {
   if (!taskId)
   {
-    taskId = useParams().taskId;
+    taskId = useParams<{ taskId: string }>().taskId;
   }
 
   const [task, setTask] = useState<Task>();

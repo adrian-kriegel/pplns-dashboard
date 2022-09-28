@@ -6,9 +6,6 @@ import * as unologin from 'unologin-scripts';
 import { get } from 'api';
 
 import React, { useEffect } from 'react';
-import ErrorPage from '@unologin/react-ui/info/error-page';
-
-import { Link } from 'react-router-dom';
 
 import LoginPage from 'components/login-page/login-page';
 
@@ -154,45 +151,6 @@ export const hasUserClass = (user : User | undefined, userClass : string) =>
   user?.userClasses.find((str) => str.includes('super'))
 ;
 
-
-export const withUserClass = <PropsType, >(
-  userClass : string,
-  Component: React.ComponentType<PropsType>
-) => 
-{
-  return (props: PropsType) => 
-  {
-    const user = useUser();
-
-    if (hasUserClass(user, userClass))
-    {
-      return <Component {...props} />;
-    }
-    else
-    {
-      const userClassReadable = userClass.replace(
-        'users_', ''
-      ).replace(
-        '_', ' ',
-      );
-
-      return <ErrorPage
-        backButton={true}
-        error={
-          {
-            code: '403 - Forbidden',
-            msg: <>
-              This feature is restricted to {userClassReadable}.
-              <br/>
-              <Link to='/about'>learn more</Link>
-            </>,
-          }
-        }
-      />;
-    }
-  };
-};
-
 export const withSession = <PropsType, >(
   Component: React.ComponentType<PropsType>
 ) => 
@@ -203,7 +161,7 @@ export const withSession = <PropsType, >(
 
     if (user)
     {
-      return <Component {...props} />;
+      return <Component {...props as any} />;
     }
     else 
     {

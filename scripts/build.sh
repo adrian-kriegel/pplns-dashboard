@@ -1,7 +1,7 @@
 
 LINKED_PKGS=$(ls -l node_modules/* | egrep "^l")
 
-if [ ! -z "$LINKED_PKGS" ] && [ "$1" == "production" ]; then
+if [ ! -z "$LINKED_PKGS" ] && [ "$1" == "production" ] && false; then
 
     echo "Please unlink the following packages before building."
     echo "$LINKED_PKGS"
