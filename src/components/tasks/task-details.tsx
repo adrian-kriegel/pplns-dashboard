@@ -43,6 +43,7 @@ import { ContextMenu } from '../general/context-menu';
 import NodeMenu from './context-menus/node-context-menu';
 import LogInfo from '@unologin/react-ui/info/log-info';
 import TaskContextMenu from './context-menus/task-context-menu';
+import StatusIndicator from 'components/general/status-indicator';
 
 export type FlowNode = FlowNodeGeneric<{ node : NodeRead }>;
 
@@ -481,6 +482,7 @@ export default function TaskDetails(
             }
           }
         />
+        <StatusIndicator taskId={taskId} />
         <LogContext.Consumer>
           {
             ({ logs, removeLog }) => logs.map((log) => 
