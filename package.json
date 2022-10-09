@@ -1,5 +1,5 @@
 {
-  "name": "annotation-dashboard",
+  "name": "@pplns/dashboard",
   "version": "1.0.0",
   "description": "description here",
   "main": "main.js",
